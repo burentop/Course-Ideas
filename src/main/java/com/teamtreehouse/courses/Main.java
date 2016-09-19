@@ -9,9 +9,7 @@ import spark.template.handlebars.HandlebarsTemplateEngine;
 import java.util.HashMap;
 import java.util.Map;
 
-import static spark.Spark.get;
-import static spark.Spark.post;
-import static spark.Spark.staticFileLocation;
+import static spark.Spark.*;
 
 public class Main {
     public static void main(String[] args) {
@@ -20,9 +18,24 @@ public class Main {
 
         CourseIdeaDAO dao = new SimpleCourseIdeaDAO();
 
+        before((req, res) -> {
+            if (req.cookie("username") != null) {
+                req.attribute("username", req.cookie("username"));
+            }
+        });
+
+        before("/ideas", (req, res) -> {
+            // TODO:bap - Send message about redirect
+
+           if (req.attribute("username") == null) {
+               res.redirect("/");
+               halt();
+           }
+        });
+
         get("/", (req, res) -> {
             Map<String, String> model = new HashMap<>();
-            model.put("username", req.cookie("username"));
+            model.put("username", req.attribute("username"));
             return new ModelAndView(model, "index.hbs");
         }, new HandlebarsTemplateEngine());
 
@@ -43,8 +56,7 @@ public class Main {
 
         post("/ideas", (req, res) -> {
             String title = req.queryParams("title");
-            // TODO:bap - This username is tied to the cookie implementation
-            CourseIdea courseIdea = new CourseIdea(title, req.cookie("username"));
+            CourseIdea courseIdea = new CourseIdea(title, req.attribute("username"));
             dao.add(courseIdea);
             res.redirect("/ideas");
             return null;

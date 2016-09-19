@@ -1,12 +1,23 @@
 package com.teamtreehouse.courses.model;
 
+import com.github.slugify.Slugify;
+
+import java.io.IOException;
+
 public class CourseIdea {
+    private String slug;
     private String title;
     private String creator;
 
     public CourseIdea(String title, String creator) {
         this.title = title;
         this.creator = creator;
+        try {
+            Slugify slugify = new Slugify();
+            slug = slugify.slugify(title);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public String getTitle() {
@@ -15,6 +26,10 @@ public class CourseIdea {
 
     public String getCreator() {
         return creator;
+    }
+
+    public String getSlug() {
+        return slug;
     }
 
     @Override
